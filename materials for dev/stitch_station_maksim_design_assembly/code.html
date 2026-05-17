@@ -1,0 +1,237 @@
+<!DOCTYPE html><html class="dark" lang="ru" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Папа: Записать событие</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom 3D Button utilities */
+        .btn-3d {
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 0 rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 0 rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+        }
+        
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(13, 28, 45, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(132, 148, 149, 0.2);
+        }
+
+        /* Radar Background */
+        .radar-bg {
+            background-image: 
+                radial-gradient(circle at 50% 50%, transparent 20%, rgba(0, 240, 255, 0.05) 21%, transparent 22%),
+                radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 240, 255, 0.05) 41%, transparent 42%),
+                radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 240, 255, 0.05) 61%, transparent 62%),
+                radial-gradient(circle at 50% 50%, transparent 80%, rgba(0, 240, 255, 0.05) 81%, transparent 82%);
+        }
+        
+        /* Console Panel */
+        .console-panel {
+            background: rgba(18, 33, 49, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+        
+        /* Terminal Input */
+        .terminal-input {
+            background: #010f1f;
+            border: 1px solid #3b494b;
+            color: #d4e4fa;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .terminal-input:focus {
+            border-color: #00f0ff;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            outline: none;
+        }
+        .terminal-input::placeholder {
+            color: #849495;
+            opacity: 0.8;
+        }
+    </style>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"inverse-primary": "#006877", "outline-variant": "#3c494c", "inverse-surface": "#dfe2f3", "on-error-container": "#ffdad6", "on-primary-fixed-variant": "#004e5a", "on-tertiary-container": "#a20016", "surface-variant": "#313442", "on-background": "#dfe2f3", outline: "#859397", "surface-dim": "#0f131f", "error-container": "#93000a", "on-secondary-fixed": "#261a00", "on-secondary": "#402d00", "primary-fixed-dim": "#2fd9f4", "on-primary-fixed": "#001f25", "tertiary-container": "#ffaba5", "tertiary-fixed": "#ffdad7", "on-tertiary": "#68000a", primary: "#8aebff", tertiary: "#ffd2ce", "on-tertiary-fixed": "#410004", "on-primary": "#00363e", "on-surface-variant": "#bbc9cd", "surface-container-highest": "#313442", "on-primary-container": "#005763", "on-secondary-fixed-variant": "#5c4300", "surface-container-high": "#262a37", "secondary-fixed": "#ffdf9f", surface: "#0f131f", "surface-container-low": "#171b28", "primary-fixed": "#a2eeff", "surface-tint": "#2fd9f4", secondary: "#ffc640", "secondary-container": "#e3aa00", background: "#0f131f", "on-tertiary-fixed-variant": "#930013", "primary-container": "#22d3ee", "secondary-fixed-dim": "#f9bd22", "surface-bright": "#353946", "on-surface": "#dfe2f3", "on-secondary-container": "#5a4100", "inverse-on-surface": "#2c303d", error: "#ffb4ab", "on-error": "#690005", "surface-container": "#1b1f2c", "surface-container-lowest": "#0a0e1a", "tertiary-fixed-dim": "#ffb3ad"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {gutter: "24px", "margin-desktop": "64px", "margin-mobile": "16px", "container-padding": "32px", unit: "8px"}, fontFamily: {"body-md": ["Montserrat", "sans-serif"], "headline-xl": ["Montserrat", "sans-serif"], "label-sm": ["Montserrat", "sans-serif"], "body-lg": ["Montserrat", "sans-serif"], "headline-md": ["Montserrat", "sans-serif"], "headline-lg": ["Montserrat", "sans-serif"], headline: ["Space Grotesk"], display: ["Space Grotesk"], body: ["Inter"], label: ["Space Grotesk"]}, fontSize: {"body-md": ["16px", {lineHeight: "1.6", letterSpacing: "0em", fontWeight: "500"}], "headline-xl": ["40px", {lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700"}], "label-sm": ["12px", {lineHeight: "1", letterSpacing: "0.08em", fontWeight: "600"}], "body-lg": ["18px", {lineHeight: "1.6", letterSpacing: "0em", fontWeight: "500"}], "headline-md": ["24px", {lineHeight: "1.2", letterSpacing: "-0.01em", fontWeight: "700"}], "headline-lg": ["32px", {lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700"}]}}}};</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style data-stitch-cursor=""></style><style data-stitch-scroll-lock=""></style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style data-stitch-cursor=""></style><style data-stitch-scroll-lock=""></style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <style data-stitch-cursor=""></style><style data-stitch-scroll-lock=""></style><style data-stitch-cursor=""></style><style data-stitch-scroll-lock=""></style></head>
+<body class="text-on-surface min-h-screen relative overflow-x-hidden pb-12 font-body-md font-['Inter',_sans-serif] bg-[#0a0b13]">
+<!-- Deep Space Background -->
+<div class="fixed inset-0 z-[-2] bg-cover bg-center" data-alt="A deep, vast outer space scene with swirling dark nebulas, distant glowing galaxies, and thousands of stars scattered across a black and deep navy blue void. The atmosphere is mysterious, expansive, and high-fidelity sci-fi." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDu2xmbLfTAxbzMW5fm_-a8hBkQWEduiq9Gy8aN92VSFFVfHjgD44dxlArdr1Rww8g4SU45p8KpKiagwJWfpSxelnJhcwoWmTHsZK3Rhs69ORkF-hRC4KT-5qTwSrVx8foZuOfkFX4AtAtqY9LVm5AoYcDaGLTrAVi72MbYDnBVkYYtErwKq0wuLaqMcFig3b5lY2CKa8wsuO0Gv1pSnDuJrM0J2G9m9V9zichNmZeo7NeqBJNF50h87SLX13TPuMmFExoKug1xSpQ&quot;);">
+</div>
+<!-- Radar overlay -->
+<div class="fixed inset-0 z-[-1] radar-bg opacity-30 pointer-events-none"></div>
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-surface-container/80 backdrop-blur-xl border border-primary-container/30 mx-4 mt-4 shadow-[0_0_15px_rgba(0,240,255,0.15)] shadow-lg flex justify-between items-center px-4 py-3 max-w-md mx-auto transition-all duration-300 w-[calc(100%-2rem)] rounded-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-primary-container/50 overflow-hidden bg-surface-container-high relative">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A 3D stylized avatar portrait of a man, resembling a video game character, wearing a futuristic space commander uniform. He has a friendly but authoritative expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK5l5A9pLhMV1GgmzbdIvlhjSqueFeCAuxFalxqMtN0kAbnodbT9QbmSjueiKxl4OabvhEfdOklyNts9g4seu6YivbGyvNzwCL32s6HU_qNHPuCJ9-cjnE_qELC2kwq-X34hr169zs7Hzex5y9X6YLIkN8MxTAjQMaqTg4wglV5bCml0IsgqVCHnGt6b9Myp1j-qFULg_DkBFOJlokDwJvCRxfmk3z_qvUOJxmUO2wJY-XMNlkjwEjmHDz9KtiLiE6Q0sl8ysPqls">
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary-fixed tracking-widest uppercase">ПАПА</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 bg-surface-container-highest px-3 py-1.5 rounded-full border border-primary-container/20">
+<span class="material-symbols-outlined text-primary-fixed text-[18px]">bolt</span>
+<span class="font-body-md text-body-md text-primary-fixed font-bold">+47</span>
+</div>
+<button class="flex items-center justify-center w-[36px] h-[36px] bg-surface-variant/30 rounded-full border border-primary-container/20 hover:bg-surface-variant/50 hover:border-primary-container/40 transition-all text-on-surface-variant hover:text-primary-fixed group">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+</button>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 mt-6 flex flex-col gap-8 relative z-10">
+<!-- Page Title -->
+<div class="text-center">
+<h1 class="font-headline-xl text-headline-xl text-transparent bg-clip-text bg-gradient-to-b from-primary-fixed to-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,240,255,0.5)] uppercase tracking-wide">
+                ЗАПИСАТЬ СОБЫТИЕ
+            </h1>
+</div>
+<!-- 01 СФЕРА -->
+<section class="console-panel p-4 flex flex-col gap-3 rounded-2xl">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-[0.15em] uppercase font-bold">01 СФЕРА</h2>
+<div class="grid grid-cols-2 gap-3">
+<!-- Active Button -->
+<button class="btn-3d h-14 bg-gradient-to-b from-primary-container/80 to-primary-container/40 border border-primary-container shadow-[0_0_15px_rgba(0,240,255,0.4)] flex items-center justify-center gap-2 px-4 relative overflow-hidden group rounded-xl">
+<div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50"></div>
+<div class="flex items-center gap-2 relative z-10"><span class="material-symbols-outlined text-white">menu_book</span><span class="font-body-md font-bold text-white text-[12px]">УЧЁБА</span></div>
+<span class="material-symbols-outlined drop-shadow-md relative z-10 text-[18px] text-white">check</span>
+</button>
+<!-- Inactive Buttons -->
+<button class="btn-3d h-14 glass-panel flex items-center justify-center gap-2 px-4 hover:border-[#e879f9]/60 transition-colors group rounded-xl">
+<span class="material-symbols-outlined text-[#e879f9]">handshake</span>
+<span class="font-body-md text-on-surface font-semibold text-[12px] group-hover:text-[#e879f9]">УВАЖЕДИЕ</span>
+</button>
+<button class="btn-3d h-14 glass-panel flex items-center justify-center gap-2 px-4 hover:border-primary-container/60 transition-colors rounded-xl">
+<span class="material-symbols-outlined text-primary-fixed">my_location</span>
+<span class="font-body-md text-on-surface font-semibold text-[12px]">ФОКУС</span>
+</button>
+<button class="btn-3d h-14 glass-panel flex items-center justify-center gap-2 px-4 hover:border-primary-container/60 transition-colors rounded-xl">
+<span class="material-symbols-outlined text-tertiary-container">home</span>
+<span class="font-body-md text-on-surface font-semibold text-[12px]">ДОМ</span>
+</button>
+</div>
+</section>
+<!-- 02 ТИП СОБЫТИЯ -->
+<section class="console-panel p-4 flex flex-col gap-3 rounded-2xl">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-[0.15em] uppercase font-bold">02 ТИП СОБЫТИЯ</h2>
+<div class="grid grid-cols-3 gap-2">
+<!-- Active Positive -->
+<button class="btn-3d h-12 bg-gradient-to-b from-[#22c55e]/80 to-[#22c55e]/40 border border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.5)] flex items-center justify-center gap-1.5 relative overflow-hidden rounded-xl">
+<div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50"></div>
+<span class="material-symbols-outlined text-white text-[18px] text-\[24px\]">thumb_up</span>
+<span class="font-label-sm text-white uppercase tracking-wider font-light text-[11px]" style="font-size: 6.6px;">ХОРОШЕЕ</span>
+</button>
+<!-- Inactive Neutral -->
+<button class="btn-3d h-12 glass-panel border-outline-variant flex items-center justify-center gap-1 hover:bg-surface-variant/50 transition-colors px-1 rounded-xl">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] text-\[22px\]">sentiment_neutral</span>
+<span class="font-label-sm text-on-surface-variant uppercase tracking-wider font-light text-[11px]" style="font-size: 6.6px;">НЕЙТРАЛЬНОЕ</span>
+</button>
+<!-- Inactive Negative -->
+<button class="btn-3d h-12 bg-[#fd435e]/20 border border-[#fd435e] shadow-[0_0_15px_rgba(253,67,94,0.4)] flex items-center justify-center gap-1.5 hover:bg-[#fd435e]/30 transition-colors rounded-xl">
+<span class="material-symbols-outlined text-[#fd435e] text-[18px]">thumb_down</span>
+<span class="font-label-sm text-[#fd435e] uppercase tracking-wider font-light text-[11px]" style="font-size: 6.6px;">ПЛОХОЕ</span>
+</button>
+</div>
+</section>
+<!-- 03 СИЛА -->
+<section class="console-panel p-4 flex flex-col gap-3 rounded-2xl">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-[0.15em] uppercase font-bold">03 СИЛА</h2>
+<div class="flex justify-between items-center gap-2">
+<!-- +2 -->
+<button class="btn-3d w-[64px] h-[64px] glass-panel flex flex-col items-center justify-center text-[#22c55e] hover:border-[#22c55e]/50 rounded-2xl">
+<span class="material-symbols-outlined text-[24px]">eco</span>
+<span class="font-headline-md text-[18px] font-bold mt-1" style="font-size: 12.6px;">+2</span>
+</button>
+<!-- +5 -->
+<button class="btn-3d w-[64px] h-[64px] glass-panel flex flex-col items-center justify-center text-tertiary-fixed hover:border-tertiary-fixed/50 rounded-2xl">
+<span class="material-symbols-outlined text-[24px]">thumb_up</span>
+<span class="font-headline-md text-[18px] font-bold mt-1" style="font-size: 12.6px;">+5</span>
+</button>
+<!-- +10 (Active) -->
+<button class="btn-3d w-[72px] h-[72px] bg-gradient-to-b from-tertiary-container to-tertiary-fixed flex flex-col items-center justify-center text-on-tertiary-container border-2 relative transform scale-110 z-10 border-tertiary-fixed shadow-[0_0_25px_rgba(254,214,57,0.8)] rounded-2xl">
+<div class="absolute -top-2 -right-2 bg-tertiary-container rounded-full border-[0.5px] border-tertiary-fixed/50 shadow-sm bg-gradient-to-tr from-tertiary-fixed to-tertiary-container flex items-center justify-center w-5 h-5">
+<span class="material-symbols-outlined text-on-tertiary-container text-[12px] font-light" style="font-variation-settings: &quot;wght&quot; 200;">check</span>
+</div>
+<div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-60 rounded-xl"></div>
+<span class="material-symbols-outlined text-[28px] relative z-10">star</span>
+<span class="font-headline-md text-[20px] font-bold relative z-10" style="font-size: 14px;">+10</span>
+</button>
+<!-- +18 -->
+<button class="btn-3d w-[64px] h-[64px] glass-panel flex flex-col items-center justify-center text-[#e879f9] hover:border-[#e879f9]/50 shadow-[0_0_10px_rgba(232,121,249,0.2)] rounded-2xl">
+<div class="flex">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px] -ml-1">star</span>
+</div>
+<span class="font-headline-md text-[18px] font-bold mt-1" style="font-size: 12.6px;">+18</span>
+</button>
+<!-- +30 -->
+<button class="btn-3d w-[64px] h-[64px] glass-panel flex flex-col items-center justify-center text-[#fd435e] hover:border-[#fd435e]/50 rounded-2xl">
+<span class="material-symbols-outlined text-[24px]">rocket_launch</span>
+<span class="font-headline-md text-[18px] font-bold mt-1" style="font-size: 12.6px;">+30</span>
+</button>
+</div>
+<!-- Tooltip / Description -->
+<div class="mt-4 bg-surface-container p-3 border border-outline-variant relative rounded-xl">
+<p class="font-body-md text-body-md text-on-surface relative z-10 flex items-start gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px] shrink-0 mt-0.5">info</span>
+<span class=""><strong class="text-tertiary-fixed font-bold">+10 баллов</strong> — хороший поступок, заметный вклад в энергию станции</span>
+</p>
+</div>
+</section>
+<!-- 04 КОММЕНТАРИЙ -->
+<section class="console-panel p-4 flex flex-col gap-3 rounded-2xl">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-[0.15em] uppercase font-bold">04 КОММЕНТАРИЙ</h2>
+<div class="relative"><div class="absolute top-4 left-4 flex items-center justify-center pointer-events-none z-20">
+<span class="material-symbols-outlined text-primary-container text-[20px]">terminal</span>
+</div>
+<textarea class="w-full terminal-input pl-12 pr-4 py-4 resize-none h-[100px] rounded-xl relative z-10" placeholder="&gt; Введите данные журнала..."></textarea>
+<div class="absolute bottom-3 right-4 font-label-sm text-label-sm text-on-surface-variant font-bold z-20">
+                    0/140
+                </div></div>
+</section>
+<!-- Submit Action -->
+<div class="mt-4 pb-8">
+<button class="btn-3d w-full h-[72px] px-6 bg-gradient-to-r from-primary-container via-primary-fixed to-primary-container border border-primary-fixed shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center justify-center gap-3 relative overflow-hidden active:scale-[0.98] transition-transform text-[14px] rounded-2xl">
+<div class="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-50"></div>
+<span class="font-headline-md uppercase tracking-wider font-bold relative z-10 whitespace-nowrap tracking-[0.1em] text-\[16px\] text-[14px] text-white" style="font-size: 14px;">ОТПРАВИТЬ СИГНАЛ</span>
+<span class="material-symbols-outlined relative z-10 text-[28px] text-white">send</span>
+</button>
+<div class="text-center mt-4 flex items-center justify-center gap-2 text-on-surface-variant font-body-md text-[14px]">
+<div class="w-5 h-5 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant">
+<img alt="Avatar small" class="w-full h-full object-cover" data-alt="A very small 3D stylized avatar portrait of a man, resembling a video game character." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvscUN5pXjgXKaLr-5e2c8oI43WhjR-G1W9AK0WWAz99wjYkxOelNwCSnPNQ2myTjA8371Qa-LXxyeTIv1wqOjrGNjeC8F6wSmRlHIe-hSGsjK-Dfj6w19c7NxGMQMUXAoJblbzmbbROoW7WHufynI9ljuo6SMxPuGeQqiPHiHKf6WRi5BVns-BB5tZ7Yq3yO5_7_5L_PbrPtSKrD08lo8bQAZHIVz4vsmgLZ5GSoNHmoCvtorBgd5qrakgNZNX5YaLSBXM15dciA">
+</div>
+<span class="">Папа • только что</span>
+</div>
+</div>
+</main>
+
+
+
+
+</body></html>
