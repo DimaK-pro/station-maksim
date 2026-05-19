@@ -1,43 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, ChevronLeft, Save, Check } from 'lucide-react';
 import bgImage from '../assets/BG-min.jpg';
 import { cn } from '../utils/cn';
+import { api } from '../api';
 
 export const AdminSettingsScreen: React.FC = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('station_token');
+  
+  useEffect(() => {
+    if (!token) {
+      navigate('/admin');
+    } else {
+      api.getSettings(token).then((data) => {
+        setKDivisor(data.curveK ?? 30);
+        setDecayFactor(data.decayCoeff ?? 0.92);
+        if (data.rewardEnergyThresholds) setRewardEnergyThresholds(data.rewardEnergyThresholds.split(',').map(Number));
+        if (data.consequenceEnergyThresholds) setConsEnergyThresholds(data.consequenceEnergyThresholds.split(',').map(Number));
+        if (data.weightsGood) setGoodPoints(data.weightsGood.split(',').map(Number));
+        if (data.weightsNeutral) setNeutralPoints(data.weightsNeutral.split(',').map(Number));
+        if (data.weightsBad) setBadPoints(data.weightsBad.split(',').map(Number));
+        if (data.rewardDays) setRewardDays(data.rewardDays.split(',').map(Number));
+        if (data.consequenceDays) setConsDays(data.consequenceDays.split(',').map(Number));
+      }).catch(console.error);
+    }
+  }, [navigate, token]);
   
   // ФОРМУЛА ЭНЕРГИИ
   const [kDivisor, setKDivisor] = useState(30);
   const [decayFactor, setDecayFactor] = useState(0.92);
 
-  // ПОРОГИ СОСТОЯНИЙ СТАНЦИИ
-  const [thresholdPlus, setThresholdPlus] = useState(50);
-  const [thresholdMinus, setThresholdMinus] = useState(-50);
-
   // ЗНАЧЕНИЯ СИЛЫ СОБЫТИЙ
-  const [goodPoints, setGoodPoints] = useState([5, 10, 20, 30, 50]);
+  const [goodPoints, setGoodPoints] = useState([5, 10, 20, 35, 50]);
   const [neutralPoints, setNeutralPoints] = useState([-2, -1, 0, 1, 2]);
-  const [badPoints, setBadPoints] = useState([-5, -10, -20, -30, -50]);
+  const [badPoints, setBadPoints] = useState([-5, -10, -20, -35, -50]);
 
   // ПОРОГИ СУНДУКОВ — НАГРАДЫ
+  const [rewardEnergyThresholds, setRewardEnergyThresholds] = useState([50, 50, 50, 50]);
   const [rewardDays, setRewardDays] = useState([1, 7, 14, 30]);
 
   // ПОРОГИ СУНДУКОВ — ПОСЛЕДСТВИЯ
+  const [consEnergyThresholds, setConsEnergyThresholds] = useState([-50, -50, -50, -50]);
   const [consDays, setConsDays] = useState([1, 3, 7, 14]);
 
   // PIN-КОДЫ
   const [activePinForm, setActivePinForm] = useState<'papa' | 'mama' | 'babushka' | null>(null);
   const [oldPin, setOldPin] = useState('');
   const [newPin, setNewPin] = useState('');
+  const [pinSaved, setPinSaved] = useState<string | null>(null);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinBusy, setPinBusy] = useState(false);
 
   const [saved, setSaved] = useState(false);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-    }, 2000);
+  const handleSave = async () => {
+    if (!token) return;
+    try {
+      await api.updateSettings(token, {
+        curveK: kDivisor,
+        decayCoeff: decayFactor,
+        weightsGood: goodPoints.join(','),
+        weightsNeutral: neutralPoints.join(','),
+        weightsBad: badPoints.join(','),
+        rewardEnergyThresholds: rewardEnergyThresholds.join(','),
+        consequenceEnergyThresholds: consEnergyThresholds.join(','),
+        rewardDays: rewardDays.join(','),
+        consequenceDays: consDays.join(',')
+      });
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to save settings', err);
+    }
   };
 
   const handlePointChange = (type: 'good' | 'neutral' | 'bad', index: number, value: string) => {
@@ -67,6 +104,54 @@ export const AdminSettingsScreen: React.FC = () => {
       const newArr = [...consDays];
       newArr[index] = val;
       setConsDays(newArr);
+    }
+  };
+
+  const handleEnergyThresholdChange = (type: 'reward' | 'cons', index: number, value: string) => {
+    const val = parseInt(value) || 0;
+    if (type === 'reward') {
+      const newArr = [...rewardEnergyThresholds];
+      newArr[index] = val;
+      setRewardEnergyThresholds(newArr);
+    } else {
+      const newArr = [...consEnergyThresholds];
+      newArr[index] = val;
+      setConsEnergyThresholds(newArr);
+    }
+  };
+
+  const handlePinSubmit = async (roleToUpdate: 'papa' | 'mama' | 'babushka') => {
+    if (!token || pinBusy) return;
+
+    setPinError(null);
+    setPinSaved(null);
+
+    if (!/^\d{4}$/.test(newPin)) {
+      setPinError('Новый PIN должен состоять из 4 цифр');
+      return;
+    }
+
+    if (roleToUpdate === 'papa' && !/^\d{4}$/.test(oldPin)) {
+      setPinError('Введите старый PIN из 4 цифр');
+      return;
+    }
+
+    setPinBusy(true);
+    try {
+      await api.updatePin(token, {
+        role: roleToUpdate,
+        oldPin: roleToUpdate === 'papa' ? oldPin : undefined,
+        newPin
+      });
+      setPinSaved(roleToUpdate);
+      setActivePinForm(null);
+      setOldPin('');
+      setNewPin('');
+      setTimeout(() => setPinSaved(null), 2500);
+    } catch {
+      setPinError(roleToUpdate === 'papa' ? 'Не удалось сменить PIN. Проверьте старый PIN.' : 'Не удалось сбросить PIN.');
+    } finally {
+      setPinBusy(false);
     }
   };
 
@@ -144,42 +229,6 @@ export const AdminSettingsScreen: React.FC = () => {
           </div>
         </section>
 
-        {/* ПОРОГИ СОСТОЯНИЙ СТАНЦИИ */}
-        <section className="glass-panel p-5 flex flex-col gap-4 rounded-3xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-          <h2 className="font-montserrat text-[10px] font-bold text-cyan-400/60 tracking-[0.2em] uppercase flex items-center gap-2">
-            <span className="w-4 h-[1px] bg-cyan-400/30"></span>
-            ПОРОГИ СОСТОЯНИЙ СТАНЦИИ
-          </h2>
-          
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="font-montserrat text-xs tracking-wider font-bold text-cyan-400">Порог плюса (E)</span>
-                <input 
-                  type="number" 
-                  value={thresholdPlus} 
-                  onChange={(e) => setThresholdPlus(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-black/40 border border-cyan-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-cyan-400 focus:outline-none focus:border-cyan-400 text-center"
-                />
-              </div>
-              <p className="text-[10px] text-white/40 font-nunito">Выше этого значения — станция синяя, начинается отсчёт дней для наград. Между 0 и порогом — /warning.</p>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="font-montserrat text-xs tracking-wider font-bold text-red-400">Порог минуса (E)</span>
-                <input 
-                  type="number" 
-                  value={thresholdMinus} 
-                  onChange={(e) => setThresholdMinus(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-black/40 border border-red-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-red-400 focus:outline-none focus:border-red-400 text-center"
-                />
-              </div>
-              <p className="text-[10px] text-white/40 font-nunito">Ниже этого значения — /critical, начинается отсчёт для последствий. Между 0 и порогом — /danger.</p>
-            </div>
-          </div>
-        </section>
-
         {/* ЗНАЧЕНИЯ СИЛЫ СОБЫТИЙ */}
         <section className="glass-panel p-5 flex flex-col gap-4 rounded-3xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
           <h2 className="font-montserrat text-[10px] font-bold text-cyan-400/60 tracking-[0.2em] uppercase flex items-center gap-2">
@@ -244,14 +293,24 @@ export const AdminSettingsScreen: React.FC = () => {
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center text-[10px] font-montserrat text-white/40 mb-1 px-1 uppercase tracking-widest">
               <span>Уровень</span>
-              <span>Срабатывает чз N дней</span>
+              <span>Энергия / дни</span>
             </div>
             {rewardDays.map((val, i) => (
               <div key={`rew-${i}`} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="font-montserrat text-xs font-bold text-yellow-400 tracking-widest">УРОВЕНЬ {i + 1}</span>
                 <div className="flex items-center gap-2">
+                  <span className="text-white/50 text-xs font-nunito">E</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={rewardEnergyThresholds[i] ?? 50}
+                    onChange={(e) => handleEnergyThresholdChange('reward', i, e.target.value)}
+                    className="w-16 bg-black/40 border border-yellow-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-yellow-400 focus:outline-none focus:border-yellow-400 text-center font-bold"
+                  />
                   <input 
                     type="number" 
+                    min={0}
                     value={val}
                     onChange={(e) => handleDaysChange('reward', i, e.target.value)}
                     className="w-16 bg-black/40 border border-yellow-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-yellow-400 focus:outline-none focus:border-yellow-400 text-center font-bold"
@@ -272,14 +331,24 @@ export const AdminSettingsScreen: React.FC = () => {
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center text-[10px] font-montserrat text-white/40 mb-1 px-1 uppercase tracking-widest">
               <span>Уровень</span>
-              <span>Срабатывает чз N дней</span>
+              <span>Энергия / дни</span>
             </div>
             {consDays.map((val, i) => (
               <div key={`cons-${i}`} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="font-montserrat text-xs font-bold text-red-400 tracking-widest">УРОВЕНЬ {i + 1}</span>
                 <div className="flex items-center gap-2">
+                  <span className="text-white/50 text-xs font-nunito">E</span>
+                  <input
+                    type="number"
+                    min={-100}
+                    max={0}
+                    value={consEnergyThresholds[i] ?? -50}
+                    onChange={(e) => handleEnergyThresholdChange('cons', i, e.target.value)}
+                    className="w-16 bg-black/40 border border-red-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-red-400 focus:outline-none focus:border-red-400 text-center font-bold"
+                  />
                   <input 
                     type="number" 
+                    min={0}
                     value={val}
                     onChange={(e) => handleDaysChange('cons', i, e.target.value)}
                     className="w-16 bg-black/40 border border-red-500/30 rounded-lg px-2 py-1 text-sm font-nunito text-red-400 focus:outline-none focus:border-red-400 text-center font-bold"
@@ -298,6 +367,16 @@ export const AdminSettingsScreen: React.FC = () => {
             PIN-КОДЫ
           </h2>
           <div className="flex flex-col gap-3">
+            {pinSaved && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl px-3 py-2 text-center text-xs font-montserrat font-bold uppercase tracking-widest">
+                PIN обновлен
+              </div>
+            )}
+            {pinError && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-3 py-2 text-center text-xs font-nunito">
+                {pinError}
+              </div>
+            )}
             {[
               { id: 'papa', label: 'Сменить свой PIN' },
               { id: 'mama', label: 'Сбросить PIN Мамы' },
@@ -331,14 +410,11 @@ export const AdminSettingsScreen: React.FC = () => {
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-nunito text-white focus:outline-none focus:border-cyan-500 text-center tracking-[0.5em]"
                     />
                     <button 
-                      onClick={() => {
-                        setActivePinForm(null);
-                        setOldPin('');
-                        setNewPin('');
-                      }}
-                      className="w-full h-10 glass-panel flex items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all text-cyan-400 mt-1"
+                      onClick={() => handlePinSubmit(pinItem.id as 'papa' | 'mama' | 'babushka')}
+                      disabled={pinBusy}
+                      className="w-full h-10 glass-panel flex items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 disabled:opacity-50 transition-all text-cyan-400 mt-1"
                     >
-                      <span className="font-montserrat text-xs font-bold tracking-widest uppercase">ПОДТВЕРДИТЬ</span>
+                      <span className="font-montserrat text-xs font-bold tracking-widest uppercase">{pinBusy ? 'СОХРАНЯЕМ' : 'ПОДТВЕРДИТЬ'}</span>
                     </button>
                   </div>
                 )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { cn } from '../utils/cn';
@@ -6,20 +6,57 @@ import { ChevronLeft, Clock, Plus, Trash2, List, Gift } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import bgImage from '../assets/BG-min.jpg';
+import { api } from '../api';
+
+const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+}
+
+function formatLogDateTime(value: string): string {
+  const date = new Date(value);
+  const day = date.getDate();
+  const month = MONTH_SHORT[date.getMonth()] ?? '';
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return `${day} ${month} / ${time}`;
+}
 
 export const MissionLogScreen: React.FC = () => {
-  const { events, spheres } = useAppStore();
+  const { events, spheres, deleteEvent } = useAppStore();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'events' | 'rewards'>('events');
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [spins, setSpins] = useState<any[]>([]);
+  const [isLoadingSpins, setIsLoadingSpins] = useState(false);
 
-  const role = localStorage.getItem('role');
+  useEffect(() => {
+    if (activeTab === 'rewards') {
+      const fetchSpins = async () => {
+        setIsLoadingSpins(true);
+        try {
+          const fetchedSpins = await api.getEvents('spins');
+          setSpins(fetchedSpins);
+        } catch (e) {
+          console.error('Failed to fetch spins', e);
+        } finally {
+          setIsLoadingSpins(false);
+        }
+      };
+      fetchSpins();
+    }
+  }, [activeTab]);
+
+  const role = localStorage.getItem('station_role');
 
   const visibleEvents = events.filter(e => !deletedIds.includes(e.id));
-  const today = visibleEvents.filter(e => new Date(e.timestamp).getDate() === new Date().getDate());
-  const older = visibleEvents.filter(e => new Date(e.timestamp).getDate() !== new Date().getDate());
+  const now = new Date();
+  const today = visibleEvents.filter(e => isSameDay(new Date(e.timestamp), now));
+  const older = visibleEvents.filter(e => !isSameDay(new Date(e.timestamp), now));
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -76,38 +113,94 @@ export const MissionLogScreen: React.FC = () => {
             {sphere?.emoji}
           </div>
           
-          <div className="flex-1 z-10">
+          <div className="flex-1 z-10 min-w-0">
             <div className="flex justify-between items-start mb-1">
-              <h3 className="font-montserrat font-bold text-white/90 leading-tight text-sm tracking-wide">{event.title}</h3>
+              <h3 className="font-montserrat font-bold text-white/80 leading-tight text-xs tracking-wide uppercase pr-3">{event.title}</h3>
               <span className={cn(
-                "font-montserrat font-black text-sm drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]", 
+                "font-montserrat font-black text-xl leading-none drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] shrink-0",
                 isPositive ? "text-[#22d3ee]" : "text-red-400"
               )}>
                 {event.points > 0 ? '+' : ''}{event.points}
               </span>
             </div>
             
-            <p className="text-white/60 font-nunito text-sm leading-snug">{event.comment}</p>
+            <p className="text-white/75 font-nunito text-base leading-snug pr-1">{event.comment}</p>
             
             <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/10 text-[10px] sm:text-xs text-white/40 font-montserrat">
               <div className="flex items-center gap-1.5">
                 <span className={cn("w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]", authorColor)}></span>
                 <span className="uppercase tracking-widest font-bold text-white/60">{event.author}</span>
               </div>
-              <div className="flex items-center gap-1 font-nunito font-semibold">
-                <Clock size={12} className="opacity-70" />
-                <span>{new Date(event.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 font-nunito font-semibold">
+                  <Clock size={12} className="opacity-70" />
+                  <span>{formatLogDateTime(event.timestamp)}</span>
+                </div>
+                {role && (
+                  <button 
+                    onClick={() => setEventToDelete(event.id)}
+                    className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                    aria-label="Удалить событие"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const SpinCard = ({ spin }: { spin: any }) => {
+    const isReward = spin.chestType === 'reward';
+    const item = spin.chestItem;
+    if (!item) return null;
+
+    return (
+      <motion.div variants={itemVariants} className="relative pl-6 mb-4">
+        {/* Timeline Line */}
+        <div className="absolute left-[11px] top-8 bottom-[-16px] w-[2px] bg-white/10 last:bg-transparent"></div>
+        
+        {/* Timeline Node */}
+        <div className={cn(
+          "absolute left-0 top-3 w-6 h-6 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-sm z-10",
+          isReward ? "bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.5)]" : "bg-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+        )}>
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            isReward ? "bg-amber-400" : "bg-purple-400"
+          )}></div>
+        </div>
+        
+        <div 
+          className="glass-panel p-4 flex gap-4 rounded-2xl border border-white/10 relative overflow-hidden"
+          style={{
+            boxShadow: isReward ? '0 4px 20px -2px rgba(245,158,11,0.1)' : '0 4px 20px -2px rgba(168,85,247,0.1)',
+          }}
+        >
+          <div className={cn(
+            "absolute -right-4 -top-4 w-24 h-24 rounded-full blur-[30px] opacity-20 pointer-events-none",
+            isReward ? "bg-amber-400" : "bg-purple-500"
+          )}></div>
+
+          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0 shadow-inner z-10">
+            {item.icon}
+          </div>
+          
+          <div className="flex-1 z-10 flex flex-col justify-center">
+            <h3 className="font-montserrat font-bold text-white/90 leading-tight text-sm tracking-wide mb-1">{item.title}</h3>
             
-            {role && (
-              <button 
-                onClick={() => setEventToDelete(event.id)}
-                className="absolute right-4 bottom-4 p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+            <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10 text-[10px] sm:text-xs text-white/40 font-montserrat">
+              <div className="flex items-center gap-1.5 uppercase tracking-widest font-bold text-white/60">
+                {isReward ? 'Награда' : 'Последствие'} • Ур. {item.level}
+              </div>
+              <div className="flex items-center gap-1 font-nunito font-semibold">
+                <Clock size={12} className="opacity-70" />
+                <span>{formatLogDateTime(spin.createdAt)}</span>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -208,14 +301,28 @@ export const MissionLogScreen: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col items-center justify-center h-40 opacity-50"
+                variants={containerVariants}
               >
-                <span className="font-montserrat font-bold text-sm text-white/40 tracking-widest uppercase text-center">
-                  Список пуст
-                </span>
-                <span className="text-xs font-nunito text-white/30 mt-2 text-center">
-                  (Данные появятся позже)
-                </span>
+                {isLoadingSpins ? (
+                  <div className="flex flex-col items-center justify-center h-40">
+                    <div className="w-8 h-8 rounded-full border-2 border-[#22d3ee] border-t-transparent animate-spin"></div>
+                  </div>
+                ) : spins.length > 0 ? (
+                  <div className="mb-6 mt-2">
+                    <AnimatePresence>
+                      {spins.map(s => <SpinCard key={s.id} spin={s} />)}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-40 opacity-50">
+                    <span className="font-montserrat font-bold text-sm text-white/40 tracking-widest uppercase text-center">
+                      Список пуст
+                    </span>
+                    <span className="text-xs font-nunito text-white/30 mt-2 text-center">
+                      (Данные появятся позже)
+                    </span>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -274,7 +381,8 @@ export const MissionLogScreen: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => {
-                    setDeletedIds(prev => [...prev, eventToDelete]);
+                    setDeletedIds(prev => [...prev, eventToDelete!]);
+                    deleteEvent(eventToDelete!);
                     setEventToDelete(null);
                   }}
                   className="flex-1 py-3 rounded-xl bg-red-500/20 border border-red-500/40 font-montserrat font-bold text-xs tracking-widest text-red-400 uppercase hover:bg-red-500/30 transition-all shadow-[0_0_15px_rgba(239,68,68,0.2)]"
