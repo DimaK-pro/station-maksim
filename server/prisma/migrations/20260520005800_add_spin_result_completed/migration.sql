@@ -1,0 +1,1 @@
+ALTER TABLE "SpinResult" ADD COLUMN "completed" BOOLEAN NOT NULL DEFAULT false;

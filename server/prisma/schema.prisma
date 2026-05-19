@@ -45,6 +45,7 @@ model SpinResult {
   chestType   String    // "reward" | "consequence"
   chestItem   ChestItem @relation(fields: [chestItemId], references: [id])
   chestItemId Int
+  completed   Boolean   @default(false)
   createdAt   DateTime  @default(now())
 }
 
