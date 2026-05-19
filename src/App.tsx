@@ -12,7 +12,16 @@ import { AdminLoginScreen } from './screens/AdminLoginScreen';
 import { AddEventScreen } from './screens/AddEventScreen';
 import { AdminChestsScreen } from './screens/AdminChestsScreen';
 import { AdminSettingsScreen } from './screens/AdminSettingsScreen';
-import { AppProvider } from './store';
+import { AppProvider, useAppStore } from './store';
+
+const StationGate = () => {
+  const { energy } = useAppStore();
+  
+  if (energy >= 50) return <ChildMainScreen />;
+  if (energy >= 0) return <ChildMainWarningScreen />;
+  if (energy >= -50) return <ChildMainDangerScreen />;
+  return <ChildMainCriticalScreen />;
+};
 
 export default function App() {
   return (
@@ -21,12 +30,13 @@ export default function App() {
         <div className="mobile-container">
           <Routes>
           {/* Child Routes */}
-          <Route path="/" element={<ChildMainScreen />} />
+          <Route path="/" element={<StationGate />} />
           <Route path="/warning" element={<ChildMainWarningScreen />} />
           <Route path="/danger" element={<ChildMainDangerScreen />} />
           <Route path="/critical" element={<ChildMainCriticalScreen />} />
           <Route path="/drum" element={<DrumScreen />} />
           <Route path="/drum2" element={<DrumDangerScreen />} />
+          <Route path="/drum-danger" element={<DrumDangerScreen />} />
           <Route path="/log" element={<MissionLogScreen />} />
 
           {/* Admin Routes */}

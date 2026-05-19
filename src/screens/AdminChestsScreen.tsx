@@ -4,25 +4,49 @@ import { LogOut, ChevronLeft, Trash2, Trophy, AlertTriangle, Settings, Save, Che
 import bgImage from '../assets/BG-min.jpg';
 import { cn } from '../utils/cn';
 
+import { api } from '../api';
+
 const REWARD_ICONS = ['🎮', '🍕', '🎬', '🧸', '🚗', '💰', '🏖️', '🎨', '🎉', '⭐'];
 const CONSEQUENCE_ICONS = ['📵', '🛏️', '🧹', '📚', '🚫', '🏃', '🍽️', '😶', '📝', '⚠️'];
 
-const MOCK_CHESTS = [
-  { id: 1, type: 'reward', level: 1, icon: '🎮', name: '1 час игр' },
-  { id: 2, type: 'reward', level: 1, icon: '🍕', name: 'Любимое блюдо на ужин' },
-  { id: 3, type: 'reward', level: 2, icon: '🎬', name: 'Кино на выбор' },
-  { id: 4, type: 'consequence', level: 1, icon: '🧹', name: 'Уборка комнаты' },
-];
-
 export const AdminChestsScreen: React.FC = () => {
   const navigate = useNavigate();
-  const role = localStorage.getItem('role') || 'papa';
+  const role = localStorage.getItem('station_role') || 'papa';
+  const token = localStorage.getItem('station_token');
   
   const [type, setType] = useState<'reward' | 'consequence' | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
   const [level, setLevel] = useState<number | null>(null);
+  
+  React.useEffect(() => {
+    if (!localStorage.getItem('station_token')) {
+      navigate('/admin');
+    }
+  }, [navigate]);
   const [name, setName] = useState('');
   const [saved, setSaved] = useState(false);
+  const [chestsData, setChestsData] = useState<Record<string, Record<number, any[]>>>({});
+
+  const fetchChests = async () => {
+    try {
+      const data = await api.getChests();
+      const grouped: Record<string, Record<number, any[]>> = {};
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (!grouped[item.chestType]) grouped[item.chestType] = {};
+          if (!grouped[item.chestType][item.level]) grouped[item.chestType][item.level] = [];
+          grouped[item.chestType][item.level].push(item);
+        }
+      }
+      setChestsData(grouped);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchChests();
+  }, []);
 
   const isIconActive = type !== null;
   const isLevelActive = type !== null && icon !== null;
@@ -31,16 +55,32 @@ export const AdminChestsScreen: React.FC = () => {
 
   const currentIcons = type === 'reward' ? REWARD_ICONS : type === 'consequence' ? CONSEQUENCE_ICONS : [];
 
-  const handleSave = () => {
-    if (isReady) {
-      setSaved(true);
-      setTimeout(() => {
-        setSaved(false);
-        setType(null);
-        setIcon(null);
-        setLevel(null);
-        setName('');
-      }, 2000);
+  const handleSave = async () => {
+    if (isReady && token && type && icon && level) {
+      try {
+        await api.addChestItem(token, { chestType: type, icon, level, title: name });
+        setSaved(true);
+        fetchChests();
+        setTimeout(() => {
+          setSaved(false);
+          setType(null);
+          setIcon(null);
+          setLevel(null);
+          setName('');
+        }, 2000);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!token) return;
+    try {
+      await api.deleteChestItem(token, id);
+      fetchChests();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -232,54 +272,51 @@ export const AdminChestsScreen: React.FC = () => {
             <div className="flex flex-col gap-3">
               <h3 className="font-montserrat font-bold text-yellow-400 text-sm tracking-widest flex items-center gap-2"><Trophy size={16} /> НАГРАДЫ</h3>
               
-              <div className="flex flex-col gap-2 pl-2 border-l border-white/10">
-                <h4 className="font-montserrat text-xs text-white/60 mb-1 flex items-center gap-1"><div className="flex gap-0.5">{getLevelIcons(1, 'reward')}</div> Уровень 1</h4>
-                {MOCK_CHESTS.filter(c => c.type === 'reward' && c.level === 1).map(c => (
-                  <div key={c.id} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.icon}</span>
-                      <span className="font-nunito text-white/90 text-sm">{c.name}</span>
-                    </div>
-                    <button className="text-white/30 hover:text-red-400 transition-colors p-1">
-                      <Trash2 size={16} />
-                    </button>
+              {[1, 2, 3, 4].map(l => {
+                const items = chestsData['reward']?.[l] || [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={`rew-${l}`} className="flex flex-col gap-2 pl-2 border-l border-white/10 mt-2">
+                    <h4 className="font-montserrat text-xs text-white/60 mb-1 flex items-center gap-1"><div className="flex gap-0.5">{getLevelIcons(l, 'reward')}</div> Уровень {l}</h4>
+                    {items.map((c: any) => (
+                      <div key={c.id} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{c.icon}</span>
+                          <span className="font-nunito text-white/90 text-sm">{c.title}</span>
+                        </div>
+                        <button onClick={() => handleDelete(String(c.id))} className="text-white/30 hover:text-red-400 transition-colors p-1">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-2 pl-2 border-l border-white/10 mt-2">
-                <h4 className="font-montserrat text-xs text-white/60 mb-1 flex items-center gap-1"><div className="flex gap-0.5">{getLevelIcons(2, 'reward')}</div> Уровень 2</h4>
-                {MOCK_CHESTS.filter(c => c.type === 'reward' && c.level === 2).map(c => (
-                  <div key={c.id} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.icon}</span>
-                      <span className="font-nunito text-white/90 text-sm">{c.name}</span>
-                    </div>
-                    <button className="text-white/30 hover:text-red-400 transition-colors p-1">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <div className="flex flex-col gap-3">
               <h3 className="font-montserrat font-bold text-red-400 text-sm tracking-widest flex items-center gap-2"><AlertTriangle size={16} /> ПОСЛЕДСТВИЯ</h3>
               
-              <div className="flex flex-col gap-2 pl-2 border-l border-white/10">
-                <h4 className="font-montserrat text-xs text-white/60 mb-1 flex items-center gap-1"><div className="flex gap-0.5">{getLevelIcons(1, 'consequence')}</div> Уровень 1</h4>
-                {MOCK_CHESTS.filter(c => c.type === 'consequence' && c.level === 1).map(c => (
-                  <div key={c.id} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.icon}</span>
-                      <span className="font-nunito text-white/90 text-sm">{c.name}</span>
-                    </div>
-                    <button className="text-white/30 hover:text-red-400 transition-colors p-1">
-                      <Trash2 size={16} />
-                    </button>
+              {[1, 2, 3, 4].map(l => {
+                const items = chestsData['consequence']?.[l] || [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={`cons-${l}`} className="flex flex-col gap-2 pl-2 border-l border-white/10 mt-2">
+                    <h4 className="font-montserrat text-xs text-white/60 mb-1 flex items-center gap-1"><div className="flex gap-0.5">{getLevelIcons(l, 'consequence')}</div> Уровень {l}</h4>
+                    {items.map((c: any) => (
+                      <div key={c.id} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{c.icon}</span>
+                          <span className="font-nunito text-white/90 text-sm">{c.title}</span>
+                        </div>
+                        <button onClick={() => handleDelete(String(c.id))} className="text-white/30 hover:text-red-400 transition-colors p-1">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
-import { ChevronLeft, Delete } from 'lucide-react';
+import { ChevronLeft, Delete, AlertCircle } from 'lucide-react';
+import { api } from '../api';
 
 import bgImage from '../assets/BG-min.jpg';
 
@@ -10,23 +11,49 @@ export const AdminLoginScreen: React.FC = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState<string | null>(null);
   const [pin, setPin] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('station_token');
+    if (token) {
+      navigate('/admin/event');
+    }
+  }, [navigate]);
+
+  const roleMap: Record<string, string> = {
+    'Папа': 'papa',
+    'Мама': 'mama',
+    'Бабушка': 'babushka'
+  };
 
   const handleRoleSelect = (selectedRole: string) => {
     setRole(selectedRole);
     setPin(''); // reset pin
+    setError(null);
   };
 
-  const handlePinInput = (num: number | string) => {
+  const handlePinInput = async (num: number | string) => {
+    if (isLoading) return;
+    setError(null);
     if (num === 'del') {
       setPin(prev => prev.slice(0, -1));
     } else if (pin.length < 4 && typeof num === 'number') {
       const newPin = pin + num;
       setPin(newPin);
-      if (newPin.length === 4) {
-        // mock auth success
-        setTimeout(() => {
+      if (newPin.length === 4 && role) {
+        setIsLoading(true);
+        try {
+          const res = await api.login(roleMap[role], newPin);
+          localStorage.setItem('station_token', res.token);
+          localStorage.setItem('station_role', roleMap[role]);
           navigate('/admin/event');
-        }, 300);
+        } catch (err) {
+          setError('Неверный PIN-код');
+          setPin('');
+        } finally {
+          setIsLoading(false);
+        }
       }
     }
   };
@@ -98,18 +125,31 @@ export const AdminLoginScreen: React.FC = () => {
               className="mt-auto w-full flex flex-col"
             >
               {/* Dots - outside the glass panel */}
-              <div className="flex justify-center gap-6 mb-6">
-                {[...Array(4)].map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={cn(
-                      "w-4 h-4 rounded-full transition-all duration-300",
-                      pin.length > i 
-                        ? "bg-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.8)] scale-110" 
-                        : "bg-white/10 border border-white/20"
-                    )}
-                  />
-                ))}
+              <div className="flex flex-col items-center gap-4 mb-6">
+                <div className="flex justify-center gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "w-4 h-4 rounded-full transition-all duration-300",
+                        pin.length > i 
+                          ? "bg-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.8)] scale-110" 
+                          : "bg-white/10 border border-white/20",
+                        error && "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]"
+                      )}
+                    />
+                  ))}
+                </div>
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="flex items-center gap-2 text-red-400 text-sm font-nunito"
+                  >
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
               </div>
 
               {/* Glass panel only for the keyboard */}

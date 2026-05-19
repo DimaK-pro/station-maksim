@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useAppStore } from '../store';
+import { ChestItem } from '../mockData';
 import { cn } from '../utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,17 +18,22 @@ export const DrumScreen: React.FC = () => {
   const type = 'reward';
   const isReward = true;
   
-  const { chests } = useAppStore();
-  const items = chests.filter(c => c.type === type);
+  const { chests, spinChest, chestStatus, isStateReady } = useAppStore();
+  
+  const currentLevel = chestStatus.reward.level || 1;
+  const items = chests.filter(c => c.type === type && c.level === currentLevel);
   
   const [isSpinning, setIsSpinning] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ChestItem | null>(null);
+  const [spinItems, setSpinItems] = useState<ChestItem[] | null>(null);
   const [itemHeight, setItemHeight] = useState(90);
   const drumRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const spinInFlightRef = useRef(false);
+  const visibleItems = spinItems || items;
   
   // Create a large array to simulate an infinite drum
-  const drumItems = Array(40).fill(items).flat();
+  const drumItems = Array(40).fill(visibleItems).flat();
 
   React.useEffect(() => {
     const updateSize = () => {
@@ -43,16 +49,34 @@ export const DrumScreen: React.FC = () => {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  const handleSwipe = () => {
-    if (isSpinning) return;
+  const handleSwipe = async () => {
+    if (spinInFlightRef.current || chestStatus.reward.status !== 'available' || isSpinning || items.length === 0) return;
+    const spinSnapshot = items;
+    spinInFlightRef.current = true;
     setIsSpinning(true);
+    setSpinItems(spinSnapshot);
     setResult(null);
     
-    const winningIndex = Math.floor(Math.random() * items.length);
-    const winner = items[winningIndex];
+    // Call backend to get the actual result
+    const spinResponse = await spinChest(type);
+    
+    // If spin failed (e.g., chest not available or no items), abort
+    if (!spinResponse) {
+      spinInFlightRef.current = false;
+      setIsSpinning(false);
+      setSpinItems(null);
+      return;
+    }
+    
+    // Find the index of the winning item
+    let winningIndex = spinSnapshot.findIndex(i => String(i.id) === String(spinResponse?.chestItemId));
+    if (winningIndex === -1) {
+      winningIndex = Math.floor(Math.random() * spinSnapshot.length); // Fallback
+    }
+    const winner = spinSnapshot[winningIndex];
     
     // We land on the deep copy of the items array to ensure a long spin
-    const targetRealIndex = items.length * 20 + winningIndex;
+    const targetRealIndex = spinSnapshot.length * 20 + winningIndex;
     
     // Since drumRef is anchored at the exact vertical center of the window,
     // translating by -(index * height) places that exact item exactly in the center.
@@ -68,12 +92,29 @@ export const DrumScreen: React.FC = () => {
         duration: 4,
         ease: "power4.inOut", 
         onComplete: () => {
+          spinInFlightRef.current = false;
           setResult(winner);
           setIsSpinning(false);
         }
       });
+    } else {
+      spinInFlightRef.current = false;
+      setResult(winner);
+      setIsSpinning(false);
     }
   };
+
+  if (!isStateReady) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-b from-[#1c1e2d] to-[#131418]">
+        <div className="w-10 h-10 rounded-full border-2 border-[#f6e2a7] border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (chestStatus.reward.status !== 'available' && !isSpinning && !result) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className={cn("min-h-[100dvh] flex flex-col items-center relative overflow-x-hidden overflow-y-auto", 
@@ -225,8 +266,16 @@ export const DrumScreen: React.FC = () => {
                 key="button"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full flex justify-center px-6"
+                className="w-full flex flex-col items-center justify-center gap-4 px-6"
               >
+                <div className="w-full max-w-[360px] text-center">
+                  <div className="text-4xl sm:text-5xl mb-2">{result.emoji}</div>
+                  <p className={cn("font-montserrat font-black text-xl sm:text-2xl uppercase tracking-normal break-words",
+                    isReward ? "text-[#f6e2a7] drop-shadow-[0_0_18px_rgba(250,204,21,0.65)]" : "text-[#fecaca] drop-shadow-[0_0_18px_rgba(239,68,68,0.65)]"
+                  )}>
+                    {result.name}
+                  </p>
+                </div>
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

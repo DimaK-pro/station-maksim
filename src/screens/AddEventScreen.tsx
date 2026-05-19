@@ -2,41 +2,54 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { cn } from '../utils/cn';
-import { BookOpen, Handshake, Target, Home, ThumbsUp, Minus, ThumbsDown, Leaf, AlertTriangle, Star, Zap, Terminal, Send, LogOut, ChevronLeft, Info, Package, Settings, User } from 'lucide-react';
+import { BookOpen, Handshake, Target, Home, ThumbsUp, Minus, ThumbsDown, Leaf, AlertTriangle, Star, Zap, Terminal, Send, LogOut, ChevronLeft, Info, Package, Settings, User, Rocket, Flame, Siren } from 'lucide-react';
+import { getEventTitle } from '../utils/eventTitles';
 import bgImage from '../assets/BG-min.jpg';
 
 export const AddEventScreen: React.FC = () => {
-  const { addEvent, events } = useAppStore();
+  const { addEvent, events, weightsGood, weightsNeutral, weightsBad } = useAppStore();
   const navigate = useNavigate();
-  const role = localStorage.getItem('role') || 'papa';
+  const role = localStorage.getItem('station_role') || 'papa';
   const roleDisplay = role === 'mama' ? 'МАМА' : role === 'babushka' ? 'БАБУШКА' : 'ПАПА';
   
   const [sphereId, setSphereId] = useState<string | null>(null);
+  
+  React.useEffect(() => {
+    if (!localStorage.getItem('station_token')) {
+      navigate('/admin');
+    }
+  }, [navigate]);
   const [type, setType] = useState<'good' | 'neutral' | 'bad' | null>(null);
   const [points, setPoints] = useState<number | null>(null);
   const [comment, setComment] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isTypeActive = sphereId !== null;
   const isPointsActive = sphereId !== null && type !== null;
   const isReady = sphereId !== null && type !== null && points !== null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isReady) {
-      addEvent({
+      setSubmitError(null);
+      const saved = await addEvent({
         sphereId,
-        title: type === 'good' ? 'Позитивное событие' : type === 'bad' ? 'Негативное событие' : 'Событие',
+        title: getEventTitle(type, points),
         comment: comment || 'Без комментария',
         author: roleDisplay as any,
         points,
       });
-      navigate('/log');
+      if (saved) {
+        navigate('/log');
+      } else {
+        setSubmitError('Не удалось сохранить событие. Проверьте подключение и попробуйте еще раз.');
+      }
     }
   };
 
   const getPointsOptions = () => {
-    if (type === 'bad') return [-5, -10, -20, -30, -50];
-    if (type === 'neutral') return [-2, -1, 0, 1, 2];
-    return [5, 10, 20, 30, 50];
+    if (type === 'bad') return weightsBad;
+    if (type === 'neutral') return weightsNeutral;
+    return weightsGood;
   };
 
   return (
@@ -70,7 +83,11 @@ export const AddEventScreen: React.FC = () => {
               <Settings size={16} />
             </button>
           )}
-          <button onClick={() => navigate('/')} className="flex items-center justify-center w-9 h-9 glass-panel rounded-full border border-white/10 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-white/50 hover:text-red-400">
+          <button onClick={() => {
+            localStorage.removeItem('station_token');
+            localStorage.removeItem('station_role');
+            navigate('/admin');
+          }} className="flex items-center justify-center w-9 h-9 glass-panel rounded-full border border-white/10 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-white/50 hover:text-red-400">
             <LogOut size={16} />
           </button>
         </div>
@@ -95,7 +112,7 @@ export const AddEventScreen: React.FC = () => {
               { id: 'study', label: 'УЧЁБА', icon: BookOpen, color: 'text-blue-400' },
               { id: 'respect', label: 'УВАЖЕНИЕ', icon: Handshake, color: 'text-cyan-400' },
               { id: 'focus', label: 'ФОКУС', icon: Target, color: 'text-purple-400' },
-              { id: 'family', label: 'ДОМ', icon: Home, color: 'text-emerald-400' }
+              { id: 'home', label: 'СЕМЬЯ', icon: Home, color: 'text-emerald-400' }
             ].map(s => {
               const isActive = sphereId === s.id;
               const Icon = s.icon;
@@ -164,24 +181,39 @@ export const AddEventScreen: React.FC = () => {
               03 Сила
             </h2>
             <div className="flex justify-between items-center gap-2">
-              {getPointsOptions().map(w => {
+              {getPointsOptions().map((w, index) => {
                 const isActive = points === w;
                 let Icon = Leaf;
-                let colorClass = 'text-lime-400';
-                
-                const absW = Math.abs(w);
+                let colorClass = 'text-slate-300';
+                let activeClass = 'bg-white/10 border-white/30 shadow-inner';
+                let inactiveClass = 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10';
+
                 if (type === 'bad') {
-                  if (absW === 2) { Icon = Leaf; colorClass = 'text-lime-400'; }
-                  if (absW === 5) { Icon = ThumbsDown; colorClass = 'text-yellow-400'; }
-                  if (absW === 10) { Icon = AlertTriangle; colorClass = 'text-orange-400'; }
-                  if (absW === 18) { Icon = AlertTriangle; colorClass = 'text-red-400'; }
-                  if (absW === 30) { Icon = Zap; colorClass = 'text-red-600'; }
+                  const badVisuals = [
+                    { Icon: AlertTriangle, colorClass: 'text-yellow-300', activeClass: 'bg-yellow-400/15 border-yellow-300/50 shadow-[0_0_18px_rgba(250,204,21,0.2)]' },
+                    { Icon: ThumbsDown, colorClass: 'text-amber-400', activeClass: 'bg-amber-500/15 border-amber-400/50 shadow-[0_0_18px_rgba(245,158,11,0.22)]' },
+                    { Icon: Flame, colorClass: 'text-orange-500', activeClass: 'bg-orange-500/15 border-orange-500/50 shadow-[0_0_18px_rgba(249,115,22,0.25)]' },
+                    { Icon: Zap, colorClass: 'text-red-500', activeClass: 'bg-red-500/15 border-red-500/50 shadow-[0_0_18px_rgba(239,68,68,0.28)]' },
+                    { Icon: Siren, colorClass: 'text-red-600', activeClass: 'bg-red-600/20 border-red-500/60 shadow-[0_0_22px_rgba(220,38,38,0.35)]' },
+                  ];
+                  const visual = badVisuals[index] || badVisuals[badVisuals.length - 1];
+                  Icon = visual.Icon;
+                  colorClass = visual.colorClass;
+                  activeClass = visual.activeClass;
+                  inactiveClass = 'bg-red-950/10 border-white/5 hover:bg-red-500/10 hover:border-red-400/20';
                 } else if (type === 'good') {
-                  if (absW === 2) { Icon = Leaf; colorClass = 'text-cyan-300'; }
-                  if (absW === 5) { Icon = ThumbsUp; colorClass = 'text-cyan-500'; }
-                  if (absW === 10) { Icon = Star; colorClass = 'text-emerald-400'; }
-                  if (absW === 18) { Icon = Star; colorClass = 'text-green-500'; }
-                  if (absW === 30) { Icon = Zap; colorClass = 'text-emerald-500'; }
+                  const goodVisuals = [
+                    { Icon: Leaf, colorClass: 'text-cyan-300', activeClass: 'bg-cyan-400/15 border-cyan-300/50 shadow-[0_0_18px_rgba(103,232,249,0.2)]' },
+                    { Icon: ThumbsUp, colorClass: 'text-teal-300', activeClass: 'bg-teal-400/15 border-teal-300/50 shadow-[0_0_18px_rgba(94,234,212,0.22)]' },
+                    { Icon: Star, colorClass: 'text-emerald-400', activeClass: 'bg-emerald-400/15 border-emerald-400/50 shadow-[0_0_18px_rgba(52,211,153,0.25)]' },
+                    { Icon: Zap, colorClass: 'text-green-400', activeClass: 'bg-green-500/15 border-green-400/50 shadow-[0_0_18px_rgba(74,222,128,0.28)]' },
+                    { Icon: Rocket, colorClass: 'text-lime-300', activeClass: 'bg-lime-400/15 border-lime-300/60 shadow-[0_0_22px_rgba(190,242,100,0.35)]' },
+                  ];
+                  const visual = goodVisuals[index] || goodVisuals[goodVisuals.length - 1];
+                  Icon = visual.Icon;
+                  colorClass = visual.colorClass;
+                  activeClass = visual.activeClass;
+                  inactiveClass = 'bg-cyan-950/10 border-white/5 hover:bg-emerald-500/10 hover:border-emerald-400/20';
                 } else {
                   Icon = Minus;
                   colorClass = 'text-zinc-400';
@@ -191,7 +223,7 @@ export const AddEventScreen: React.FC = () => {
 
                 if (isActive) {
                   return (
-                    <button key={w} className={cn(baseClasses, "bg-white/10 border-white/30 shadow-inner transform scale-105 z-10")}>
+                    <button key={w} className={cn(baseClasses, activeClass, "transform scale-105 z-10")}>
                       <Icon className={cn("w-5 h-5", colorClass)} />
                       <span className={cn("font-montserrat text-sm font-bold mt-1", colorClass)}>{w > 0 ? `+${w}` : w}</span>
                     </button>
@@ -202,7 +234,7 @@ export const AddEventScreen: React.FC = () => {
                   <button 
                     key={w} 
                     onClick={() => setPoints(w)}
-                    className={cn(baseClasses, "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10")}
+                    className={cn(baseClasses, inactiveClass)}
                   >
                     <Icon className={cn("w-5 h-5 opacity-70", colorClass)} />
                     <span className={cn("font-montserrat text-sm font-bold mt-1 opacity-70", colorClass)}>{w > 0 ? `+${w}` : w}</span>
@@ -248,6 +280,11 @@ export const AddEventScreen: React.FC = () => {
 
         {/* Submit Action */}
         <div className="mt-2 pb-8">
+          {submitError && (
+            <div className="mb-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 text-center text-sm font-nunito">
+              {submitError}
+            </div>
+          )}
           <button 
             disabled={!isReady}
             onClick={handleSubmit}
