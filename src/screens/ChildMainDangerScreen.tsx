@@ -78,11 +78,11 @@ export const ChildMainDangerScreen: React.FC = () => {
       ></motion.div>
       <div className="fixed inset-0 z-0 bg-gradient-to-t from-red-950/80 via-transparent to-red-950/20 pointer-events-none"></div>
 
-      <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto pt-4 px-4 pb-4 h-[100dvh]">
+      <div className="station-layout relative z-10 w-full max-w-md mx-auto px-4">
         
         {/* Header - from screen 4 (red) */}
         <motion.div 
-          className="w-full z-20 shrink-0 mb-2 relative"
+          className="w-full z-30 shrink-0 relative"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -102,19 +102,20 @@ export const ChildMainDangerScreen: React.FC = () => {
           </div>
         </motion.div>
 
-        <div className="w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 pointer-events-none mb-4 mt-6">
-          <div className="relative w-[110%] sm:w-[100%] flex flex-col items-center justify-center">
+        <div className="station-hero">
+          <div className="station-hero-art">
             {/* Station 3 */}
             <motion.div 
-              className="w-full flex items-center justify-center z-10"
+              className="w-full h-full flex items-center justify-center z-10"
               animate={{ y: [-2, 2, -2], rotate: [-0.6, 0.6, -0.6] }}
               transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
             >
-              <img src={stationImage} alt="Station Danger" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(239,68,68,0.25)]" />
+              <img src={stationImage} alt="Station Danger" className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(239,68,68,0.25)]" />
             </motion.div>
+          </div>
 
             {/* Energy: 2 yellow divisions, but keep the plate color original blue/cyan */}
-            <div className="w-[35%] sm:w-[30%] relative flex items-center justify-center z-20 shrink-0 -mt-[3%] sm:-mt-[2%]">
+            <div className="station-energy">
               <img 
                 src={energyImage} 
                 alt="Energy" 
@@ -127,12 +128,11 @@ export const ChildMainDangerScreen: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
         </div>
 
         {/* Stats Grid - Lowered, colors shifting to orange/red */}
         <motion.div 
-          className="w-full grid grid-cols-2 gap-2 mb-4 z-20 shrink-0"
+          className="station-stats shrink-0"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
