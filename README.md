@@ -6,7 +6,7 @@
 
 Проект работает через Docker Compose:
 
-- frontend: React/Vite на `http://localhost`;
+- frontend: собранный React/Vite, который nginx отдает на `http://localhost`;
 - backend API: Fastify на `http://localhost:3001/api`;
 - database: PostgreSQL на `localhost:5432`.
 
@@ -43,7 +43,7 @@ Seed создает системного пользователя, родите�
 docker compose up --build -d
 ```
 
-Если менялся только frontend-код, текущий Docker-режим с volume обычно подхватывает изменения через Vite, но перед финальной проверкой все равно лучше пересобрать compose.
+Если менялся frontend-код, нужно пересобрать frontend-контейнер, потому что в Docker-режиме nginx отдает уже собранный `dist`.
 
 ## Production deploy
 
@@ -77,7 +77,7 @@ A  max  <IP production-сервера>
 A  max  5.129.218.37
 ```
 
-HTTPS лучше держать на reverse proxy, например Caddy. Снаружи должны быть открыты только `80` и `443`; backend-порт `3001` не должен быть публичным.
+Frontend-контейнер сам проксирует `/api` на backend внутри Docker-сети. HTTPS лучше держать на reverse proxy, например Caddy. Снаружи должны быть открыты только `80` и `443`; backend-порт `3001` не должен быть публичным.
 
 Пример Caddy-конфига:
 
