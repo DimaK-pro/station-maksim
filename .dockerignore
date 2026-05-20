@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+.git
+.DS_Store
+logs
+*.log
+*.local
+
+.env
+.env.*
+!.env.example
+
+server
+materials for dev

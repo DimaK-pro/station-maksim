@@ -65,7 +65,7 @@ export const ChildMainScreen: React.FC = () => {
   const { energy, spheres } = useAppStore();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#070b14] flex flex-col items-center">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[#070b14] flex flex-col items-center">
       {/* Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center" 
@@ -73,11 +73,11 @@ export const ChildMainScreen: React.FC = () => {
       ></div>
 
       {/* Foreground Container */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto pt-4 px-4 pb-4 h-[100dvh]">
+      <div className="station-layout relative z-10 w-full max-w-md mx-auto px-4">
         
         {/* Header */}
         <motion.div 
-          className="w-full z-20 shrink-0 mb-2 relative"
+          className="w-full z-30 shrink-0 relative"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -99,20 +99,20 @@ export const ChildMainScreen: React.FC = () => {
         </motion.div>
 
         {/* Station + Energy Composition */}
-        <div className="w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 pointer-events-none mb-4 mt-6">
-          
-          <div className="relative w-[110%] sm:w-[100%] flex flex-col items-center justify-center">
+        <div className="station-hero">
+          <div className="station-hero-art">
             {/* Station */}
             <motion.div 
-              className="w-full flex items-center justify-center z-10"
+              className="w-full h-full flex items-center justify-center z-10"
               animate={{ y: [-4, 4, -4], rotate: [-1, 1, -1] }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
             >
-              <img src={stationImage} alt="Station" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(0,180,255,0.15)]" />
+              <img src={stationImage} alt="Station" className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,180,255,0.15)]" />
             </motion.div>
+          </div>
 
-            {/* Fixed Energy indicator - Distance slightly reduced by 25-30% */}
-            <div className="w-[35%] sm:w-[30%] relative flex items-center justify-center z-20 shrink-0 -mt-[3%] sm:-mt-[2%]">
+          {/* Fixed Energy indicator over the station */}
+          <div className="station-energy">
               <img src={energyImage} alt="Energy" className="w-full h-auto object-contain drop-shadow-[0_0_15px_rgba(0,255,255,0.3)]" />
               <div className="absolute flex items-center justify-center gap-1 pl-1">
                 <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] fill-cyan-400" />
@@ -121,13 +121,11 @@ export const ChildMainScreen: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
-          
         </div>
 
         {/* Stats Grid */}
         <motion.div 
-          className="w-full grid grid-cols-2 gap-2 mb-4 z-20 shrink-0"
+          className="station-stats shrink-0"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}

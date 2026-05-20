@@ -71,6 +71,34 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     }
   );
 
+  // PATCH /api/events/spins/:id — отметить выпавшую награду/последствие выполненной 🔒
+  app.patch<{ Params: { id: string }; Body: { completed: boolean } }>(
+    '/events/spins/:id',
+    { preHandler: verifyToken },
+    async (request, reply) => {
+      const id = parseInt(request.params.id);
+      const { completed } = request.body;
+
+      if (!Number.isInteger(id)) {
+        return reply.status(400).send({ error: 'Invalid spin id' });
+      }
+      if (typeof completed !== 'boolean') {
+        return reply.status(400).send({ error: 'completed must be boolean' });
+      }
+
+      const spin = await prisma.spinResult.findUnique({ where: { id } });
+      if (!spin) return reply.status(404).send({ error: 'Spin result not found' });
+
+      const updatedSpin = await prisma.spinResult.update({
+        where: { id },
+        data: { completed },
+        include: { chestItem: true },
+      });
+
+      return reply.send(updatedSpin);
+    }
+  );
+
   // DELETE /api/events/:id — удалить событие 🔒
   app.delete<{ Params: { id: string } }>(
     '/events/:id',

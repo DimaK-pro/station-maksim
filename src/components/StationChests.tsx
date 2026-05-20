@@ -76,7 +76,7 @@ export const StationChests: React.FC = () => {
 
   return (
     <motion.div
-      className="w-full grid grid-cols-2 gap-3 z-20 mt-auto shrink-0 pb-6"
+      className="station-chests grid grid-cols-2 gap-2 z-20 shrink-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
@@ -88,7 +88,7 @@ export const StationChests: React.FC = () => {
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => rewardAvailable && navigate('/drum')}
-          className={`cursor-pointer mb-0 relative w-full flex justify-center z-10 ${!rewardAvailable && 'opacity-80'}`}
+          className={`cursor-pointer -mb-1 relative w-full flex justify-center z-10 ${!rewardAvailable && 'opacity-80'}`}
         >
           {rewardAvailable && (
             <motion.div
@@ -100,22 +100,22 @@ export const StationChests: React.FC = () => {
           <img
             src={sundukImage}
             alt="Rewards"
-            className={`relative z-10 w-[85%] h-auto object-contain transition-all ${
+            className={`relative z-10 w-[72%] sm:w-[78%] h-auto object-contain transition-all ${
               rewardAvailable
                 ? 'drop-shadow-[0_0_34px_rgba(250,204,21,0.95)] brightness-110'
                 : 'drop-shadow-[0_0_25px_rgba(250,204,21,0.2)]'
             }`}
           />
         </motion.div>
-        <div className="text-center w-full -mt-4 relative z-20 pointer-events-none">
-          <div className="text-[#facc15] font-montserrat font-bold text-[12px] uppercase tracking-wider mb-0.5" style={{ textShadow: '0 0 10px rgba(250,204,21,0.5)' }}>НАГРАДЫ</div>
-          <div className="text-[#facc15]/70 font-nunito text-[10px] sm:text-[11px] mb-1">
+        <div className="text-center w-full -mt-3 relative z-20 pointer-events-none">
+          <div className="text-[#facc15] font-montserrat font-bold text-[11px] sm:text-[12px] uppercase tracking-wider mb-0.5" style={{ textShadow: '0 0 10px rgba(250,204,21,0.5)' }}>НАГРАДЫ</div>
+          <div className="text-[#facc15]/70 font-nunito text-[9px] sm:text-[11px] leading-tight mb-0.5">
             {getRewardText(reward)}
           </div>
-          <div className="text-[#facc15]/45 font-montserrat text-[8px] sm:text-[9px] uppercase tracking-wider mb-1 min-h-[10px]">
+          <div className="text-[#facc15]/45 font-montserrat text-[8px] sm:text-[9px] uppercase tracking-wider mb-0.5 min-h-[10px]">
             {getProgressText(reward)}
           </div>
-          <div className="w-[85%] h-1 bg-white/10 rounded-full mx-auto overflow-hidden">
+          <div className="w-[78%] h-1 bg-white/10 rounded-full mx-auto overflow-hidden">
             <motion.div
               className="h-full bg-[#facc15] rounded-full shadow-[0_0_8px_rgba(250,204,21,0.8)]"
               animate={rewardAvailable ? { opacity: [0.75, 1, 0.75] } : undefined}
@@ -133,7 +133,7 @@ export const StationChests: React.FC = () => {
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => consequenceAvailable && navigate('/drum-danger')}
-          className={`cursor-pointer mb-0 relative w-full flex justify-center z-10 ${!consequenceAvailable && 'opacity-80'}`}
+          className={`cursor-pointer -mb-1 relative w-full flex justify-center z-10 ${!consequenceAvailable && 'opacity-80'}`}
         >
           {consequenceAvailable && (
             <motion.div
@@ -145,22 +145,22 @@ export const StationChests: React.FC = () => {
           <img
             src={dangerImage}
             alt="Consequences"
-            className={`relative z-10 w-[85%] h-auto object-contain transition-all ${
+            className={`relative z-10 w-[72%] sm:w-[78%] h-auto object-contain transition-all ${
               consequenceAvailable
                 ? 'drop-shadow-[0_0_38px_rgba(244,63,94,1)] brightness-125 saturate-150'
                 : 'drop-shadow-[0_0_15px_rgba(239,68,68,0.2)]'
             }`}
           />
         </motion.div>
-        <div className="text-center w-full -mt-4 relative z-20 pointer-events-none">
-          <div className="text-[#f43f5e] font-montserrat font-bold text-[12px] uppercase tracking-wider mb-0.5" style={{ textShadow: '0 0 10px rgba(244,63,94,0.5)' }}>ПОСЛЕДСТВИЯ</div>
-          <div className="text-[#f43f5e]/70 font-nunito text-[10px] sm:text-[11px] mb-1">
+        <div className="text-center w-full -mt-3 relative z-20 pointer-events-none">
+          <div className="text-[#f43f5e] font-montserrat font-bold text-[11px] sm:text-[12px] uppercase tracking-wider mb-0.5" style={{ textShadow: '0 0 10px rgba(244,63,94,0.5)' }}>ПОСЛЕДСТВИЯ</div>
+          <div className="text-[#f43f5e]/70 font-nunito text-[9px] sm:text-[11px] leading-tight mb-0.5">
             {getConsequenceText(consequence)}
           </div>
-          <div className="text-[#f43f5e]/45 font-montserrat text-[8px] sm:text-[9px] uppercase tracking-wider mb-1 min-h-[10px]">
+          <div className="text-[#f43f5e]/45 font-montserrat text-[8px] sm:text-[9px] uppercase tracking-wider mb-0.5 min-h-[10px]">
             {getProgressText(consequence)}
           </div>
-          <div className="w-[85%] h-1 bg-white/10 rounded-full mx-auto overflow-hidden">
+          <div className="w-[78%] h-1 bg-white/10 rounded-full mx-auto overflow-hidden">
             <motion.div
               className="h-full bg-[#f43f5e] rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)]"
               animate={consequenceAvailable ? { opacity: [0.7, 1, 0.7] } : undefined}

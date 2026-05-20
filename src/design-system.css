@@ -124,4 +124,159 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .station-layout {
+    display: grid;
+    grid-template-rows: auto minmax(190px, 1fr) auto auto;
+    row-gap: clamp(4px, 1.1dvh, 18px);
+    height: 100dvh;
+    min-height: 100dvh;
+    padding-top: clamp(8px, 1.5dvh, 18px);
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .station-hero {
+    position: relative;
+    width: 100%;
+    min-height: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .station-hero-art {
+    position: absolute;
+    left: -8%;
+    right: -8%;
+    top: clamp(-54px, -5dvh, -14px);
+    bottom: clamp(24px, 5dvh, 54px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .station-energy {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(0px, 1.2dvh, 18px);
+    z-index: 20;
+    width: clamp(112px, 34%, 152px);
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .station-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(6px, 0.9dvh, 10px);
+    z-index: 20;
+  }
+
+  .station-chests {
+    width: 100%;
+    margin-top: clamp(-8px, -0.7dvh, -2px);
+    padding-bottom: clamp(2px, 0.8dvh, 10px);
+  }
+
+  @media (max-height: 680px) {
+    .station-layout {
+      grid-template-rows: auto minmax(168px, 210px) auto auto;
+      row-gap: 4px;
+      padding-top: 6px;
+      padding-bottom: max(4px, env(safe-area-inset-bottom));
+    }
+
+    .station-hero-art {
+      top: -24px;
+      bottom: 14px;
+    }
+
+    .station-energy {
+      width: clamp(104px, 32%, 136px);
+      bottom: 0;
+    }
+
+    .station-stats {
+      gap: 5px;
+    }
+
+    .station-stats .glass-panel {
+      padding: 0.45rem !important;
+      border-radius: 0.875rem !important;
+    }
+
+    .station-stats .glass-panel > div:first-child {
+      margin-bottom: 0.25rem !important;
+    }
+
+    .station-stats svg {
+      width: 0.875rem !important;
+      height: 0.875rem !important;
+    }
+
+    .station-stats span {
+      font-size: 0.68rem !important;
+      line-height: 1.05 !important;
+    }
+
+    .station-stats .glass-panel > div:last-child {
+      height: 0.875rem !important;
+    }
+
+    .station-chests {
+      margin-top: -30px;
+      padding-bottom: 2px;
+    }
+
+    .station-chests img[alt="Rewards"],
+    .station-chests img[alt="Consequences"] {
+      width: 52% !important;
+    }
+
+    .station-chests > div > div:last-child {
+      margin-top: -0.75rem;
+    }
+
+    .station-chests > div > div:last-child > div:first-child {
+      font-size: 9px !important;
+      line-height: 1.05 !important;
+    }
+
+    .station-chests > div > div:last-child > div:nth-child(2) {
+      font-size: 8px !important;
+      line-height: 1.05 !important;
+      margin-bottom: 1px !important;
+    }
+
+    .station-chests > div > div:last-child > div:nth-child(3) {
+      font-size: 7px !important;
+      line-height: 1.05 !important;
+      min-height: 7px !important;
+      margin-bottom: 1px !important;
+    }
+  }
+
+  @media (min-height: 860px) {
+    .station-layout {
+      row-gap: clamp(14px, 1.8dvh, 26px);
+      padding-top: clamp(14px, 2dvh, 24px);
+      padding-bottom: clamp(18px, 2.2dvh, 32px);
+    }
+
+    .station-hero-art {
+      top: clamp(-72px, -6dvh, -30px);
+      bottom: clamp(38px, 5.5dvh, 70px);
+    }
+
+    .station-energy {
+      bottom: clamp(8px, 1.6dvh, 24px);
+    }
+
+    .station-chests {
+      margin-top: clamp(4px, 1dvh, 14px);
+    }
+  }
 }

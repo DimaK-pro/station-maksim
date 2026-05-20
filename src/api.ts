@@ -35,6 +35,18 @@ export const api = {
     if (!res.ok) throw new Error('Failed to delete event');
     return res.json();
   },
+  updateSpinCompleted: async (token: string, id: string, completed: boolean) => {
+    const res = await fetch(`${API_URL}/events/spins/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ completed })
+    });
+    if (!res.ok) throw new Error('Failed to update spin result');
+    return res.json();
+  },
   login: async (role: string, pin: string) => {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',

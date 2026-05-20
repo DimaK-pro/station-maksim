@@ -70,11 +70,11 @@ export const ChildMainWarningScreen: React.FC = () => {
         style={{backgroundImage: `url(${bgImage})`}}
       ></div>
       
-      <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto pt-4 px-4 pb-4 h-[100dvh]">
+      <div className="station-layout relative z-10 w-full max-w-md mx-auto px-4">
         
         {/* Header - from screen 1 */}
         <motion.div 
-          className="w-full z-20 shrink-0 mb-2 relative"
+          className="w-full z-30 shrink-0 relative"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -94,19 +94,20 @@ export const ChildMainWarningScreen: React.FC = () => {
           </div>
         </motion.div>
 
-        <div className="w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 pointer-events-none mb-4 mt-6">
-          <div className="relative w-[110%] sm:w-[100%] flex flex-col items-center justify-center">
+        <div className="station-hero">
+          <div className="station-hero-art">
             {/* Station 2 */}
             <motion.div 
-              className="w-full flex items-center justify-center z-10"
+              className="w-full h-full flex items-center justify-center z-10"
               animate={{ y: [-3, 3, -3], rotate: [-0.8, 0.8, -0.8] }}
               transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
             >
-              <img src={stationImage} alt="Station Warning" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(0,180,255,0.15)]" />
+              <img src={stationImage} alt="Station Warning" className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,180,255,0.15)]" />
             </motion.div>
+          </div>
 
             {/* Energy: 3 green divisions roughly, green/lime tint for text only */}
-            <div className="w-[35%] sm:w-[30%] relative flex items-center justify-center z-20 shrink-0 -mt-[3%] sm:-mt-[2%]">
+            <div className="station-energy">
               <img 
                 src={energyImage} 
                 alt="Energy" 
@@ -119,12 +120,11 @@ export const ChildMainWarningScreen: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
         </div>
 
         {/* Stats Grid - Lowered, colors shifting to yellow/greenish */}
         <motion.div 
-          className="w-full grid grid-cols-2 gap-2 mb-4 z-20 shrink-0"
+          className="station-stats shrink-0"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}

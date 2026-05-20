@@ -83,11 +83,11 @@ export const ChildMainCriticalScreen: React.FC = () => {
       <div className="fixed inset-0 z-0 bg-gradient-to-t from-red-950/90 via-transparent to-red-900/20 pointer-events-none"></div>
 
       {/* Foreground Container */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto pt-4 px-4 pb-4 h-[100dvh]">
+      <div className="station-layout relative z-10 w-full max-w-md mx-auto px-4">
         
         {/* Header */}
         <motion.div 
-          className="w-full z-20 shrink-0 mb-2 relative"
+          className="w-full z-30 shrink-0 relative"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -109,20 +109,20 @@ export const ChildMainCriticalScreen: React.FC = () => {
         </motion.div>
 
         {/* Station + Energy Composition */}
-        <div className="w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 pointer-events-none mb-4 mt-6 relative">
-          
-          <div className="relative w-[110%] sm:w-[100%] flex flex-col items-center justify-center">
+        <div className="station-hero">
+          <div className="station-hero-art">
             {/* Critical Station */}
             <motion.div 
-              className="w-full flex items-center justify-center z-10"
+              className="w-full h-full flex items-center justify-center z-10"
               animate={{ y: [-2, 2, -2], rotate: [-0.5, 0.5, -0.5] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
             >
-              <img src={stationImage} alt="Station Critical" className="w-full h-auto object-contain drop-shadow-[0_0_40px_rgba(239,68,68,0.3)]" />
+              <img src={stationImage} alt="Station Critical" className="w-full h-full object-contain drop-shadow-[0_0_40px_rgba(239,68,68,0.3)]" />
             </motion.div>
+          </div>
 
             {/* Fixed Energy indicator - Distance slightly reduced by 25-30% */}
-            <div className="w-[35%] sm:w-[30%] relative flex items-center justify-center z-20 shrink-0 -mt-[3%] sm:-mt-[2%]">
+            <div className="station-energy">
               <img 
                 src={energyImage} 
                 alt="Energy" 
@@ -136,13 +136,11 @@ export const ChildMainCriticalScreen: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
-          
         </div>
 
         {/* Stats Grid - All turned to critical/red colors and low values */}
         <motion.div 
-          className="w-full grid grid-cols-2 gap-2 mb-4 z-20 shrink-0"
+          className="station-stats shrink-0"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}

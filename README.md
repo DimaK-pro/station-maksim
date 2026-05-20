@@ -6,7 +6,7 @@
 
 Проект работает через Docker Compose:
 
-- frontend: React/Vite на `http://localhost`;
+- frontend: собранный React/Vite, который nginx отдает на `http://localhost`;
 - backend API: Fastify на `http://localhost:3001/api`;
 - database: PostgreSQL на `localhost:5432`.
 
@@ -43,7 +43,78 @@ Seed создает системного пользователя, родите�
 docker compose up --build -d
 ```
 
-Если менялся только frontend-код, текущий Docker-режим с volume обычно подхватывает изменения через Vite, но перед финальной проверкой все равно лучше пересобрать compose.
+Если менялся frontend-код, нужно пересобрать frontend-контейнер, потому что в Docker-режиме nginx отдает уже собранный `dist`.
+
+## Production deploy
+
+Production-адрес приложения:
+
+```text
+https://max.kozyura.space
+```
+
+Production API работает через тот же домен:
+
+```text
+https://max.kozyura.space/api
+```
+
+Для production frontend должен обращаться к API по относительному адресу:
+
+```text
+VITE_API_URL=/api
+```
+
+DNS для поддомена:
+
+```text
+A  max  <IP production-сервера>
+```
+
+Для текущего сервера:
+
+```text
+A  max  5.129.218.37
+```
+
+Frontend-контейнер сам проксирует `/api` на backend внутри Docker-сети. HTTPS лучше держать на reverse proxy, например Caddy. Снаружи должны быть открыты только `80` и `443`; backend-порт `3001` не должен быть публичным.
+
+Пример Caddy-конфига:
+
+```caddyfile
+max.kozyura.space {
+  reverse_proxy /api/* server:3001
+  reverse_proxy frontend:80
+}
+```
+
+Порядок обновления production:
+
+1. Залить изменения в GitHub и смерджить нужную ветку.
+2. На сервере обновить код:
+
+```bash
+cd /opt/station-maksim
+git fetch origin
+git checkout main
+git pull origin main
+docker compose up --build -d
+```
+
+Если деплой идет не из `main`, а из отдельной ветки, заменить `main` на нужное имя ветки, например:
+
+```bash
+git checkout codex/final-station-release
+git pull origin codex/final-station-release
+```
+
+Быстрая проверка после деплоя:
+
+```bash
+docker compose ps
+curl -I https://max.kozyura.space
+curl https://max.kozyura.space/api/station
+```
 
 ## Локальный запуск без Docker
 

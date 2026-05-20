@@ -2,13 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { cn } from '../utils/cn';
-import { ChevronLeft, Clock, Plus, Trash2, List, Gift } from 'lucide-react';
+import { Check, ChevronLeft, Clock, Plus, Trash2, List, Gift } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import bgImage from '../assets/BG-min.jpg';
 import { api } from '../api';
 
 const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+type SpinLogEntry = {
+  id: number;
+  chestType: 'reward' | 'consequence';
+  completed: boolean;
+  createdAt: string;
+  chestItem?: {
+    id: number;
+    icon: string;
+    title: string;
+    level: number;
+  };
+};
 
 function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() &&
@@ -31,8 +44,9 @@ export const MissionLogScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'events' | 'rewards'>('events');
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
-  const [spins, setSpins] = useState<any[]>([]);
+  const [spins, setSpins] = useState<SpinLogEntry[]>([]);
   const [isLoadingSpins, setIsLoadingSpins] = useState(false);
+  const [updatingSpinId, setUpdatingSpinId] = useState<number | null>(null);
 
   useEffect(() => {
     if (activeTab === 'rewards') {
@@ -52,6 +66,23 @@ export const MissionLogScreen: React.FC = () => {
   }, [activeTab]);
 
   const role = localStorage.getItem('station_role');
+  const adminToken = localStorage.getItem('station_token');
+  const canUpdateSpins = Boolean(adminToken && role);
+
+  const updateSpinCompleted = async (spinId: number, completed: boolean) => {
+    if (!adminToken || updatingSpinId !== null) return;
+
+    setUpdatingSpinId(spinId);
+
+    try {
+      const updatedSpin = await api.updateSpinCompleted(adminToken, String(spinId), completed);
+      setSpins(prev => prev.map(spin => spin.id === spinId ? updatedSpin : spin));
+    } catch (e) {
+      console.error('Failed to update spin completion', e);
+    } finally {
+      setUpdatingSpinId(null);
+    }
+  };
 
   const visibleEvents = events.filter(e => !deletedIds.includes(e.id));
   const now = new Date();
@@ -153,10 +184,11 @@ export const MissionLogScreen: React.FC = () => {
     );
   };
 
-  const SpinCard = ({ spin }: { spin: any }) => {
+  const SpinCard = ({ spin }: { spin: SpinLogEntry }) => {
     const isReward = spin.chestType === 'reward';
     const item = spin.chestItem;
     if (!item) return null;
+    const isUpdating = updatingSpinId === spin.id;
 
     return (
       <motion.div variants={itemVariants} className="relative pl-6 mb-4">
@@ -190,7 +222,36 @@ export const MissionLogScreen: React.FC = () => {
           </div>
           
           <div className="flex-1 z-10 flex flex-col justify-center">
-            <h3 className="font-montserrat font-bold text-white/90 leading-tight text-sm tracking-wide mb-1">{item.title}</h3>
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <h3 className="font-montserrat font-bold text-white/90 leading-tight text-sm tracking-wide min-w-0">{item.title}</h3>
+              <button
+                type="button"
+                onClick={() => updateSpinCompleted(spin.id, !spin.completed)}
+                disabled={!canUpdateSpins || isUpdating}
+                aria-pressed={spin.completed ? 'true' : 'false'}
+                aria-label={spin.completed ? 'Отмечено как выполненное' : 'Отметить как выполненное'}
+                className={cn(
+                  "h-6 w-6 shrink-0 rounded-md border flex items-center justify-center transition-all",
+                  "bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+                  spin.completed
+                    ? "border-emerald-300/50 bg-emerald-400/10 text-emerald-200 shadow-[0_0_10px_rgba(52,211,153,0.18)]"
+                    : "border-white/10 text-white/20",
+                  canUpdateSpins && !isUpdating
+                    ? "hover:border-emerald-300/40 hover:text-emerald-200 hover:bg-emerald-400/10"
+                    : "cursor-default",
+                  isUpdating && "opacity-50"
+                )}
+              >
+                <Check
+                  size={14}
+                  strokeWidth={2.5}
+                  className={cn(
+                    "transition-all duration-200",
+                    spin.completed ? "scale-100 opacity-100" : "scale-50 opacity-0"
+                  )}
+                />
+              </button>
+            </div>
             
             <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10 text-[10px] sm:text-xs text-white/40 font-montserrat">
               <div className="flex items-center gap-1.5 uppercase tracking-widest font-bold text-white/60">
