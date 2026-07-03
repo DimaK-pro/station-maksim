@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local backup output produced on this server
+/backups/
+
 # Environment files with secrets
 .env
 .env.*

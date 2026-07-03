@@ -1,0 +1,24 @@
+max.kozyura.space {
+  reverse_proxy /api/* server:3001
+  reverse_proxy /* frontend:80
+}
+
+preview.kozyura.space {
+  encode zstd gzip
+
+  @deploy path /__codex_deploy/*
+  reverse_proxy @deploy host.docker.internal:8787
+
+  root * /srv/codex-work/projects
+  file_server
+}
+
+dmitry.kozyura.space {
+  encode zstd gzip
+
+  @deploy path /__codex_publish/*
+  reverse_proxy @deploy host.docker.internal:8788
+
+  root * /srv/codex-work/public/dmitry/sites
+  file_server
+}

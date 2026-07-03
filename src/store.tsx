@@ -187,12 +187,17 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({ children })
     return () => es.close();
   }, [token]);
 
+  const getAuthToken = () => localStorage.getItem('station_token');
+
   const addEvent = async (eventData: Omit<MissionEvent, 'id' | 'timestamp'>) => {
-    // If we have a token, send to backend
-    if (token) {
+    // Always read the latest token from localStorage so logout/login cycles
+    // don't leave us with a stale in-memory value.
+    const authToken = getAuthToken();
+
+    if (authToken) {
       try {
         const { api } = await import('./api');
-        const state = await api.addEvent(token, {
+        const state = await api.addEvent(authToken, {
           sphere: eventData.sphereId,
           type: eventData.points > 0 ? 'good' : eventData.points < 0 ? 'bad' : 'neutral',
           weight: eventData.points,
@@ -207,7 +212,7 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({ children })
       }
     }
 
-    // Fallback local logic if backend is slow
+    // Fallback local logic if backend is unavailable and no token is present.
     const newEvent: MissionEvent = {
       ...eventData,
       id: Math.random().toString(36).substr(2, 9),
@@ -228,10 +233,12 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({ children })
     return true;
   };
   const deleteEvent = async (id: string) => {
-    if (token) {
+    const authToken = getAuthToken();
+
+    if (authToken) {
       try {
         const { api } = await import('./api');
-        const state = await api.deleteEvent(token, id);
+        const state = await api.deleteEvent(authToken, id);
         applyState(state);
       } catch (err) {
         console.error('Failed to delete event via API', err);
